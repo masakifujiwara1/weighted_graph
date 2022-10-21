@@ -4,9 +4,9 @@ from shutil import move
 from matplotlib.lines import lineMarkers
 from py import process
 from geometry_msgs.msg import Point
-from geometry_msgs.msg import PoseStamped
+# from geometry_msgs.msg import PoseStamped
 
-import concurrent.futures
+# import concurrent.futures
 import threading
 import time
 import rospy
@@ -19,9 +19,9 @@ from std_srvs.srv import Trigger
 
 from interactive_markers.interactive_marker_server import *
 from interactive_markers.menu_handler import *
-from simple_marker import processFeedback
+# from simple_marker import processFeedback
 from visualization_msgs.msg import *
-from nav_msgs.msg import Path
+# from nav_msgs.msg import Path
 
 POINT_X = [0.0]*20
 POINT_Y = [0.0]*20
@@ -231,7 +231,7 @@ class cylinder_node:
         control.always_visible = True
         int_marker.controls.append(control)
 
-        self.server.insert(int_marker, processFeedback)
+        self.server.insert(int_marker, self.processFeedback)
         menu_handler.apply(self.server, int_marker.name)
         
     def normalizeQuaternion(self, quaternion_msg):
