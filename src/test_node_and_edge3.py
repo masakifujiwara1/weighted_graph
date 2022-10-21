@@ -546,7 +546,7 @@ class visualization_node:
 
     def write_points_yaml(self):
         # print("write yaml!")
-        with open('write_points.yaml', 'w') as f:
+        with open('write_points2.yaml', 'w') as f:
             data = {
                 'make_points': {
 
@@ -573,7 +573,7 @@ class visualization_node:
     
     def write_line_yaml(self):
         # print("write yaml!")
-        with open('write_line.yaml', 'w') as f:
+        with open('write_line2.yaml', 'w') as f:
             data = {
                 'make_line': {
 

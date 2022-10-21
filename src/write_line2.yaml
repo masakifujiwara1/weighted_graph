@@ -1,0 +1,113 @@
+make_line:
+- id: 0
+  point1:
+    point_name: 0
+    position:
+    - 99.91506958007812
+    - 129.09950256347656
+    - 0
+  point2:
+    point_name: 1
+    position:
+    - 99.59285736083984
+    - 107.74614715576172
+    - 0
+  distance: 21.35578628574493
+- id: 1
+  point1:
+    point_name: 0
+    position:
+    - 99.91506958007812
+    - 129.09950256347656
+    - 0
+  point2:
+    point_name: 3
+    position:
+    - 90.444091796875
+    - 129.24974060058594
+    - 0
+  distance: 9.47216932057919
+- id: 2
+  point1:
+    point_name: 1
+    position:
+    - 99.59285736083984
+    - 107.74614715576172
+    - 0
+  point2:
+    point_name: 4
+    position:
+    - 89.931640625
+    - 108.05854797363281
+    - 0
+  distance: 9.666266243378486
+- id: 3
+  point1:
+    point_name: 3
+    position:
+    - 90.444091796875
+    - 129.24974060058594
+    - 0
+  point2:
+    point_name: 4
+    position:
+    - 89.931640625
+    - 108.05854797363281
+    - 0
+  distance: 21.1973878380377
+- id: 4
+  point1:
+    point_name: 4
+    position:
+    - 89.931640625
+    - 108.05854797363281
+    - 0
+  point2:
+    point_name: 5
+    position:
+    - 90.0321273803711
+    - 95.75074768066406
+    - 0
+  distance: 12.308210497046542
+- id: 5
+  point1:
+    point_name: 2
+    position:
+    - 99.38855743408203
+    - 95.36073303222656
+    - 0
+  point2:
+    point_name: 5
+    position:
+    - 90.0321273803711
+    - 95.75074768066406
+    - 0
+  distance: 9.36455523642106
+- id: 6
+  point1:
+    point_name: 1
+    position:
+    - 99.59285736083984
+    - 107.74614715576172
+    - 0
+  point2:
+    point_name: 2
+    position:
+    - 99.38855743408203
+    - 95.36073303222656
+    - 0
+  distance: 12.387098993369568
+- id: 7
+  point1:
+    point_name: 2
+    position:
+    - 99.38855743408203
+    - 95.36073303222656
+    - 0
+  point2:
+    point_name: 6
+    position:
+    - 107.64470672607422
+    - 99.64441680908203
+    - 0
+  distance: 9.301287428725006

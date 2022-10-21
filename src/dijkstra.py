@@ -2,10 +2,10 @@ import numpy as np
 import yaml
 import pprint
 
-INITIAL_NODE = 4
-GOAL_NODE = 3
-POINT_PATH = 'write_points.yaml'
-LINE_PATH = 'write_line.yaml'
+INITIAL_NODE = 3
+GOAL_NODE = 6
+POINT_PATH = 'write_points2.yaml'
+LINE_PATH = 'write_line2.yaml'
 
 with open(POINT_PATH, 'r') as yml:
     config_points = yaml.safe_load(yml)
@@ -77,7 +77,7 @@ for k, v in edge.items():
 # print(type(edge2))
 pprint.pprint(edge_, sort_dicts=False)
 
-prev_list = [0] * 6
+prev_list = [0] * len(config_points['make_points'])
 
 # calc route
 while True:
@@ -103,7 +103,7 @@ while True:
     for i,j in edge[min_edge].items():
         if (j + node_l[min_edge]) < node_l[i]:
             node_l[i] = j + node_l[min_edge]
-            prev_list[int(i)] = int(min_edge)
+            prev_list[int(i)] = int(min_edge) # iへnode(min_edge)を経由して到達
 
     # 確定したノードへのルートの削除
     node_l_[min_edge] = node_l[min_edge]
