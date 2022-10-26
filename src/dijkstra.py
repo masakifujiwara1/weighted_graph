@@ -138,5 +138,7 @@ def main():
     print("start:" + str(INITIAL_NODE), "goal:" + str(GOAL_NODE), "route:", end="")
     print(route)
 
+    return route
+
 if __name__ == '__main__':
     main()

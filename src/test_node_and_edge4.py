@@ -45,9 +45,11 @@ class cylinder_node:
         self.server = InteractiveMarkerServer("simple_marker")
         menu_handler.insert("Add point", callback=self.addpoint)
         menu_handler.insert("Initialize point", callback=self.init_point)
+        menu_handler.insert("Navigation to this point", callback=self.nav)
         sub_menu_handle = menu_handler.insert("Add line")
         menu_handler.insert("Set point1", parent=sub_menu_handle, callback=self.setpoint1)
         menu_handler.insert("Set point2", parent=sub_menu_handle, callback=self.setpoint2)
+        
         # self.point_list = []
         self.point_num = 1
         self.OLD_TIME = 0
@@ -163,7 +165,12 @@ class cylinder_node:
         self.line_point = {'POINT_[' + str(min_num) + ']': [min_num_x, min_num_y, 0], 'POINT_[' + str(max_num) + ']': [max_num_x, max_num_y, 0], 'DISTANCE': distance}
         LINE_POINT_LIST.append(self.line_point)
         # __ = self.calc_ang(min_num_x, min_num_y, max_num_x, max_num_y)
-    
+
+    def nav(self, feedback):
+        start_dijkstra = time.time()
+        route = main()
+        print("Search time: " + str(time.time()-start_dijkstra) + "s")
+
     def calc_distance(self, minx, miny, maxx, maxy):
         return (math.sqrt((maxx - minx)**2 + (maxy - miny)**2))
 
@@ -206,13 +213,13 @@ class cylinder_node:
             x = config_points['make_points'][i]['position'][0]
             # print(x)
             y = config_points['make_points'][i]['position'][1]
-            self.insert_point(self.point_num, x, y)
+            self.insert_point(i, x, y)
             self.server.insert(self.int_marker, self.processFeedback)
             menu_handler.apply(self.server, self.int_marker.name)
 
             self.server.applyChanges()
 
-            self.point_num += 1
+            # self.point_num += 1
             # self.point_num += 1
             # print("insert")
         
