@@ -24,10 +24,13 @@ from dijkstra import *
 from visualization_msgs.msg import *
 # from nav_msgs.msg import Path
 
+# LOAD_FLAG = False
+LOAD_FLAG = True
+
 POINT_X = [0.0]*20
 POINT_Y = [0.0]*20
 POINT_Z = 0.0
-N  = 2
+N  = 0
 BASE_TIME = time.time()
 LINE_POINT_LIST = []
 POINT_LIST = []
@@ -54,6 +57,8 @@ class cylinder_node:
         self.point_num_for_set_y = 0
         self.init_x = 0
         self.init_y = 0
+        if LOAD_FLAG:
+            self.load_points()
 
     def interactive(self):
         # print(time.time() - BASE_TIME)
@@ -61,7 +66,8 @@ class cylinder_node:
         # for i in range(self.point_num):
         #     self.insert_point(i)
 
-        self.insert_point(0, 0, 0)
+        if not(LOAD_FLAG):
+            self.insert_point(0, 0, 0)
 
         # self.server.applyChanges()
         # self.insert_point2(1)
@@ -187,6 +193,29 @@ class cylinder_node:
         theta=math.degrees(math.acos(cos_theta))
         print('angle='+str(round(theta,2))+'deg')
         return theta
+
+    def load_points(self):
+        global N
+        # N = len(config_points['make_points'])
+        with open(POINT_PATH, 'r') as yml:
+            config_points = yaml.safe_load(yml)
+        
+        # N = int(len(config_points['make_points']))
+
+        for i in range(len(config_points['make_points'])):
+            x = config_points['make_points'][i]['position'][0]
+            # print(x)
+            y = config_points['make_points'][i]['position'][1]
+            self.insert_point(self.point_num, x, y)
+            self.server.insert(self.int_marker, self.processFeedback)
+            menu_handler.apply(self.server, self.int_marker.name)
+
+            self.server.applyChanges()
+
+            self.point_num += 1
+            # self.point_num += 1
+            # print("insert")
+        
 
     def addpoint(self, feedback):
         print("add point!")
@@ -382,7 +411,7 @@ class cylinder_node:
         return box_marker
 
 
-class visualization_node:
+class line_node:
     def __init__(self):
         global LINE_POINT_LIST
         # rospy.init_node("simple_marker")
@@ -394,7 +423,7 @@ class visualization_node:
         # create an interactive marker server on the topic namespace simple_marker
         # self.server = InteractiveMarkerServer("simple_marker")
 
-        self.srv = rospy.Service('/all_save', Trigger, self.save)
+        self.srv = rospy.Service('/all_save', Trigger, self.save_yaml)
 
         self.list_point2 = np.array(
             [[POINT_X[0], POINT_Y[0], POINT_Z], [POINT_X[1], POINT_Y[1], POINT_Z]])
@@ -423,6 +452,8 @@ class visualization_node:
         # LINE_POINT_LIST.append(self.line_point13)
         # print(LINE_POINT_LIST)
         # LINE_POINT_LIST.append(self.list_point3)
+        if LOAD_FLAG:
+            self.load_lines()
 
     def timer(self):
         rospy.Timer(rospy.Duration(2), self.loop)
@@ -433,6 +464,8 @@ class visualization_node:
         # print("success")
         # rospy.sleep(2.0)
         self.markers()
+
+        
 
     def processFeedback(self, feedback):
         p = feedback.pose.position
@@ -538,6 +571,7 @@ class visualization_node:
 
         for i in range(len(LINE_POINT_LIST)):
             line = self.makeLine(LINE_POINT_LIST[i], id=i)
+            # print("make_line")
             markers.markers.append(line)
         
         # self.write_line_yaml()
@@ -552,9 +586,34 @@ class visualization_node:
         # markers.markers.append(line)
         self.pub_line_min_dist.publish(markers)
     
-    def save(self, data):
+    def save_yaml(self, data):
         self.write_line_yaml()
         self.write_points_yaml()
+    
+    def load_lines(self):
+        with open(LINE_PATH, 'r') as yml:
+            config_line = yaml.safe_load(yml)
+        # print(len(config_line['make_line']))
+        for i in range(len(config_line['make_line'])):
+            min = config_line['make_line'][i]['point1']
+            min_num_x = min['position'][0]
+            min_num_y = min['position'][1]
+            min_num = min['point_name']
+
+            max = config_line['make_line'][i]['point2']
+            # print(max)
+            max_num_x = max['position'][0]
+            max_num_y = max['position'][1]
+            max_num = max['point_name']
+
+            distance = self.calc_distance(min_num_x, min_num_y, max_num_x, max_num_y)
+            self.line_point = {'POINT_[' + str(min_num) + ']': [min_num_x, min_num_y, 0], 'POINT_[' + str(max_num) + ']': [max_num_x, max_num_y, 0], 'DISTANCE': distance}
+            LINE_POINT_LIST.append(self.line_point)
+        
+        # print(LINE_POINT_LIST)
+
+    def calc_distance(self, minx, miny, maxx, maxy):
+        return (math.sqrt((maxx - minx)**2 + (maxy - miny)**2))    
 
     def write_points_yaml(self):
         # print("write yaml!")
@@ -571,10 +630,7 @@ class visualization_node:
                 # print(POINT_LIST[i].keys())
                 point1 = list(POINT_LIST[i].keys())
                 value1 = POINT_LIST[i][point1[0]]
-                # list = {
-                #     'id': i,
-                #     str(point1): value1, 
-                #     str(point2): value2
+                # list = aml(point2): value2
                 # }  
                 mylist = {
                     'id': i,
@@ -621,8 +677,9 @@ class visualization_node:
             # pass
 
 if __name__ == "__main__":
-    rg = visualization_node()
+    # rg = line_node()
     rd = cylinder_node()
+    rg = line_node()
     t1 = threading.Thread(target=rd.interactive)
     # executor = concurrent.futures.ThreadPoolExecutor(max_workers=3)
     # t2 = threading.Thread(target=rg.timer)
