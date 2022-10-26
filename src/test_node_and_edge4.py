@@ -5,6 +5,7 @@ from matplotlib.lines import lineMarkers
 from py import process
 from geometry_msgs.msg import Point
 # from geometry_msgs.msg import PoseStamped
+from std_msgs.msg import Int8MultiArray
 
 # import concurrent.futures
 import threading
@@ -20,12 +21,13 @@ from std_srvs.srv import Trigger
 from interactive_markers.interactive_marker_server import *
 from interactive_markers.menu_handler import *
 # from simple_marker import processFeedback
-from dijkstra import *
+from dijkstra2 import *
 from visualization_msgs.msg import *
 # from nav_msgs.msg import Path
 
 # LOAD_FLAG = False
 LOAD_FLAG = True
+NAV_FLAG = False
 
 POINT_X = [0.0]*20
 POINT_Y = [0.0]*20
@@ -167,9 +169,14 @@ class cylinder_node:
         # __ = self.calc_ang(min_num_x, min_num_y, max_num_x, max_num_y)
 
     def nav(self, feedback):
+        global create_cmd
+        global NAV_FLAG
         start_dijkstra = time.time()
-        route = main()
+        route, cmd_dir_list = main()
         print("Search time: " + str(time.time()-start_dijkstra) + "s")
+        create_cmd = topological_node(route, cmd_dir_list)
+        NAV_FLAG = True
+
 
     def calc_distance(self, minx, miny, maxx, maxy):
         return (math.sqrt((maxx - minx)**2 + (maxy - miny)**2))
@@ -470,6 +477,11 @@ class line_node:
         # self.makeLine()
         # print("success")
         # rospy.sleep(2.0)
+        
+        if NAV_FLAG:
+            create_cmd.loop()
+            # print("publish_cmd")
+
         self.markers()
 
         
@@ -682,6 +694,43 @@ class line_node:
                 data["make_line"].append(mylist)
             yaml.safe_dump(data, f, sort_keys=False)
             # pass
+
+class topological_node:
+    def __init__(self, route, cmd_dir_list):
+        # rospy.init_node('topological_node', anonymous=True)
+        self.aisle_class_sub = rospy.Subscriber(
+            "/detect_class", Int8MultiArray, self.callback_class, queue_size=1)
+        self.cmd_dir_pub = rospy.Publisher(
+            "cmd_dir_topological", Int8MultiArray, queue_size=1)
+        self.node_no = 1
+        self.count = 0
+        self.cmd_dir = Int8MultiArray()
+        self.cmd_dir.data = (100, 0, 0)
+        self.detect_flag = False
+
+        self.cmd_list = cmd_dir_list
+
+        self.initialize()
+
+    def initialize(self):
+        pass
+
+    def callback_class(self, data):
+        self.detect_class_data = data.data
+        self.detect_flag = True
+        print("detect aisle")
+        self.count += 1
+
+    def plan(self, node_no=1):
+        if self.count > 0:
+            self.cmd_dir = self.cmd_list[self.count-1]
+        self.detect_flag = False
+
+    def loop(self):
+        if self.detect_flag:
+            self.plan(self.node_no)
+
+        self.cmd_dir_pub.publish(self.cmd_dir)
 
 if __name__ == "__main__":
     # rg = line_node()

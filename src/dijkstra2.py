@@ -142,11 +142,11 @@ def main():
 
     make_cmd_dir(route, config_points)
 
-    return route
+    return route, CMD_DIR_LIST
 
 def make_cmd_dir(route, config):
     count = 0
-    dir_cmd = [0, 0, 0]
+    dir_cmd = (0, 0, 0)
     for i in range(len(route)-1):
         if count + 2 < len(route):
             route1 = route[i]
@@ -170,17 +170,17 @@ def make_cmd_dir(route, config):
             # print(theta)
 
             if 60 <= theta <= 120:
-                dir_cmd = [0, 100, 0]
+                dir_cmd = (0, 100, 0)
             elif -60 >= theta >= -120:
-                dir_cmd = [0, 0, 100]
+                dir_cmd = (0, 0, 100)
             else:
-                dir_cmd = [100, 0, 0]
+                dir_cmd = (100, 0, 0)
             
             CMD_DIR_LIST.append(dir_cmd)
             count += 1
 
         else:
-            dir_cmd = [100, 0, 0]
+            dir_cmd = (100, 0, 0)
             CMD_DIR_LIST.append(dir_cmd)
             break
     
