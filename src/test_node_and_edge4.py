@@ -6,6 +6,7 @@ from py import process
 from geometry_msgs.msg import Point
 # from geometry_msgs.msg import PoseStamped
 from std_msgs.msg import Int8MultiArray
+from std_msgs.msg import String
 
 # import concurrent.futures
 import threading
@@ -171,6 +172,7 @@ class cylinder_node:
     def nav(self, feedback):
         global create_cmd
         global NAV_FLAG
+        global cmd_dir_list
         start_dijkstra = time.time()
         route, cmd_dir_list = main()
         print("Search time: " + str(time.time()-start_dijkstra) + "s")
@@ -700,6 +702,8 @@ class topological_node:
         # rospy.init_node('topological_node', anonymous=True)
         self.aisle_class_sub = rospy.Subscriber(
             "/detect_class", Int8MultiArray, self.callback_class, queue_size=1)
+        self.aisle_class_sub = rospy.Subscriber(
+            "/debug_cmd", String, self.debug_callback, queue_size=1)
         self.cmd_dir_pub = rospy.Publisher(
             "cmd_dir_topological", Int8MultiArray, queue_size=1)
         self.node_no = 1
@@ -718,13 +722,20 @@ class topological_node:
     def callback_class(self, data):
         self.detect_class_data = data.data
         self.detect_flag = True
-        print("detect aisle")
+        print("detect aisle1")
+        self.count += 1
+
+    def debug_callback(self, data):
+        self.detect_class_data = data.data
+        self.detect_flag = True
+        print("detect aisle2")
         self.count += 1
 
     def plan(self, node_no=1):
-        if self.count > 0:
-            self.cmd_dir = self.cmd_list[self.count-1]
-        self.detect_flag = False
+        if self.count > 0 and self.count <= len(cmd_dir_list):
+            print("change cmd")
+            self.cmd_dir.data = self.cmd_list[self.count-1]
+            self.detect_flag = False
 
     def loop(self):
         if self.detect_flag:
