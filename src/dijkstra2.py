@@ -3,8 +3,8 @@ import yaml
 import pprint
 import math
 
-INITIAL_NODE = 3
-GOAL_NODE = 6
+INITIAL_NODE = 6
+GOAL_NODE = 3
 POINT_PATH = 'write_points2.yaml'
 LINE_PATH = 'write_line2.yaml'
 CMD_DIR_LIST = []
@@ -154,12 +154,12 @@ def make_cmd_dir(route, config):
             route3 = route[i+2]
 
             route1_ = config['make_points'][route1]['position']
-            x1 = route1_[0]
-            y1 = route1_[1]
+            x0 = route1_[0]
+            y0 = route1_[1]
             
             route2_ = config['make_points'][route2]['position']
-            x0 = route2_[0]
-            y0 = route2_[1]
+            x1 = route2_[0]
+            y1 = route2_[1]
 
             route3_ = config['make_points'][route3]['position']
             x2 = route3_[0]
@@ -187,15 +187,30 @@ def make_cmd_dir(route, config):
     print(CMD_DIR_LIST)
 
 def calc_ang2(x0, y0, x1, y1, x2, y2):
-    vec1 = [x1-x0, y1-y0]
-    vec2 = [x2-x0, y2-y0]
+    vec1 = [x1-x0, y1-y0, 0]
+    vec2 = [x2-x1, y2-y1, 0]
     absvec1=np.linalg.norm(vec1)
     absvec2=np.linalg.norm(vec2)
     inner=np.inner(vec1,vec2)
     cos_theta=inner/(absvec1*absvec2)
+    w = np.cross(vec1, vec2)
+    # print(w)
+    # print(math.acos(cos_theta))
     theta=math.degrees(math.acos(cos_theta))
-    print('angle='+str(round(theta,2))+'deg')
+    
+    if w[2] >= 0:
+        pass
+    else:
+        theta *= -1
+
+    # print('angle='+str(round(theta,2))+'deg')
+
     return theta
+
+def calc_ang3(x0, y0, x1, y1, x2, y2):
+    vec1 = [x1-x0, y1-y0]
+    vec2 = [x2-x1, y2-y1]
+    inner = np.inner(vec1, vec2)
 
 
 if __name__ == '__main__':
