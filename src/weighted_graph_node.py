@@ -19,7 +19,7 @@ import numpy as np
 import math
 import yaml
 import re
-from std_srvs.srv import Trigger
+# from std_srvs.srv import Trigger
 
 from interactive_markers.interactive_marker_server import *
 from interactive_markers.menu_handler import *
@@ -39,6 +39,11 @@ N  = 0
 BASE_TIME = time.time()
 LINE_POINT_LIST = []
 POINT_LIST = []
+INITIAL_NODE = 3
+GOAL_NODE = 1
+
+POINT_PATH = '/home/fmasa/catkin_ws/src/weighted_graph/src/write_points2.yaml'
+LINE_PATH = '/home/fmasa/catkin_ws/src/weighted_graph/src/write_line2.yaml'
 
 menu_handler = MenuHandler()
 
@@ -68,6 +73,7 @@ class cylinder_node:
             self.load_points()
 
         self.nav_start_service = rospy.ServiceProxy('nav_start', Trigger)
+        self.aisle_start_service = rospy.ServiceProxy('aisle_start', Trigger)
         
 
     def interactive(self):
@@ -178,15 +184,30 @@ class cylinder_node:
         global create_cmd
         global NAV_FLAG
         global cmd_dir_list
+        global GOAL_NODE
+        GOAL_NODE = int(feedback.control_name)
         start_dijkstra = time.time()
-        route, cmd_dir_list = main()
+        route, cmd_dir_list = main(POINT_PATH, LINE_PATH, INITIAL_NODE, GOAL_NODE)
         print("Search time: " + str(time.time()-start_dijkstra) + "s")
         create_cmd = topological_node(route, cmd_dir_list)
         NAV_FLAG = True
+        self.nav_service()
+        # res =self.nav_start_service(True)
 
     def nav_service(self):
-        respl = self.nav_start_service()
-        return respl
+        # srv = Trigger()
+        # resp = TriggerResponse()
+        # resp = self.nav_start_service()
+        # return resp
+        print('called!')
+        try:
+            self.nav_start_service()
+        except rospy.ServiceException as exc:
+            print("Service did not process request: " + str(exc))
+        try:
+            self.aisle_start_service()
+        except rospy.ServiceException as exc:
+            print("Service did not process request: " + str(exc))
 
     def calc_distance(self, minx, miny, maxx, maxy):
         return (math.sqrt((maxx - minx)**2 + (maxy - miny)**2))
@@ -269,6 +290,8 @@ class cylinder_node:
         # print(self.server.marker_contexts['my_marker0']())
 
     def init_point(self, feedback):
+        global INITIAL_NODE
+        INITIAL_NODE = int(feedback.control_name)
         p = feedback.pose.position
         self.init_x = p.x
         self.init_y = p.y
@@ -713,12 +736,14 @@ class topological_node:
         self.aisle_class_sub = rospy.Subscriber(
             "/debug_cmd", String, self.debug_callback, queue_size=1)
         self.cmd_dir_pub = rospy.Publisher(
-            "cmd_dir_topological", Int8MultiArray, queue_size=1)
+            "cmd_dir", Int8MultiArray, queue_size=1)
         self.node_no = 1
         self.count = 0
         self.cmd_dir = Int8MultiArray()
         self.cmd_dir.data = (100, 0, 0)
         self.detect_flag = False
+        self.first_flag = True
+        self.with_way = False
 
         self.cmd_list = cmd_dir_list
 
@@ -730,8 +755,17 @@ class topological_node:
     def callback_class(self, data):
         self.detect_class_data = data.data
         self.detect_flag = True
-        print("detect aisle1")
-        self.count += 1
+        if not (self.detect_class_data == (1, 0, 0)):
+            # self.detect_flag = True
+            # print("detect aisle1")
+            if self.first_flag:
+                self.first_flag = False
+            else:
+                self.count += 1
+                print("change cmd")
+        else:
+            self.with_way = True
+
 
     def debug_callback(self, data):
         self.detect_class_data = data.data
@@ -740,9 +774,15 @@ class topological_node:
         self.count += 1
 
     def plan(self, node_no=1):
-        if self.count > 0 and self.count <= len(cmd_dir_list):
-            print("change cmd")
-            self.cmd_dir.data = self.cmd_list[self.count-1]
+        if self.count >= 0 and self.count <= len(cmd_dir_list):
+            # print("change cmd")
+            if self.with_way:
+                # print("")
+                self.cmd_dir.data = (100, 0, 0)
+                self.with_way = False
+            else:
+                # print("change cmd")
+                self.cmd_dir.data = self.cmd_list[self.count-1]
             self.detect_flag = False
 
     def loop(self):

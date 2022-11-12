@@ -3,13 +3,13 @@ import yaml
 import pprint
 import math
 
-INITIAL_NODE = 6
-GOAL_NODE = 3
-POINT_PATH = 'write_points2.yaml'
-LINE_PATH = 'write_line2.yaml'
+# INITIAL_NODE = 6
+# GOAL_NODE = 3
+# POINT_PATH = 'write_points2.yaml'
+# LINE_PATH = 'write_line2.yaml'
 CMD_DIR_LIST = []
 
-def main():
+def main(POINT_PATH, LINE_PATH, INITIAL_NODE, GOAL_NODE):
     with open(POINT_PATH, 'r') as yml:
         config_points = yaml.safe_load(yml)
 
