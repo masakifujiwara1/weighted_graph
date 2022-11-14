@@ -9,6 +9,7 @@ from std_msgs.msg import Int8MultiArray
 from std_msgs.msg import String
 
 from std_srvs.srv import Trigger, TriggerResponse
+from std_srvs.srv import SetBool
 
 # import concurrent.futures
 import threading
@@ -42,8 +43,10 @@ POINT_LIST = []
 INITIAL_NODE = 3
 GOAL_NODE = 1
 
-POINT_PATH = '/home/fmasa/catkin_ws/src/weighted_graph/src/write_points2.yaml'
-LINE_PATH = '/home/fmasa/catkin_ws/src/weighted_graph/src/write_line2.yaml'
+POINT_PATH = '/home/fmasa/catkin_ws/src/weighted_graph/src/write_points3.yaml'
+LINE_PATH = '/home/fmasa/catkin_ws/src/weighted_graph/src/write_line3.yaml'
+
+NAV_SERVICE = rospy.ServiceProxy('nav_start', SetBool)
 
 menu_handler = MenuHandler()
 
@@ -72,7 +75,7 @@ class cylinder_node:
         if LOAD_FLAG:
             self.load_points()
 
-        self.nav_start_service = rospy.ServiceProxy('nav_start', Trigger)
+        # self.nav_start_service = rospy.ServiceProxy('nav_start', SetBool)
         self.aisle_start_service = rospy.ServiceProxy('aisle_start', Trigger)
         
 
@@ -201,7 +204,8 @@ class cylinder_node:
         # return resp
         print('called!')
         try:
-            self.nav_start_service()
+            # self.nav_start_service(True)
+            NAV_SERVICE(True)
         except rospy.ServiceException as exc:
             print("Service did not process request: " + str(exc))
         try:
@@ -669,7 +673,7 @@ class line_node:
 
     def write_points_yaml(self):
         # print("write yaml!")
-        with open('write_points2.yaml', 'w') as f:
+        with open(POINT_PATH, 'w') as f:
             data = {
                 'make_points': {
 
@@ -693,7 +697,7 @@ class line_node:
     
     def write_line_yaml(self):
         # print("write yaml!")
-        with open('write_line2.yaml', 'w') as f:
+        with open(LINE_PATH, 'w') as f:
             data = {
                 'make_line': {
 
@@ -774,7 +778,7 @@ class topological_node:
         self.count += 1
 
     def plan(self, node_no=1):
-        if self.count >= 0 and self.count <= len(cmd_dir_list):
+        if self.count >= 0 and self.count < len(cmd_dir_list):
             # print("change cmd")
             if self.with_way:
                 # print("")
@@ -784,6 +788,12 @@ class topological_node:
                 # print("change cmd")
                 self.cmd_dir.data = self.cmd_list[self.count-1]
             self.detect_flag = False
+        else:
+            try:
+                # self.nav_start_service(True)
+                NAV_SERVICE(False)
+            except rospy.ServiceException as exc:
+                print("Service did not process request: " + str(exc))
 
     def loop(self):
         if self.detect_flag:
