@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<launch>
+    <!-- <arg name="script" default="nav_cloning_node.py"/> -->
+    <node pkg="weighted_graph" type="weighted_graph_node.py" name="weighted_graph_node" output="screen"/>
+</launch>
